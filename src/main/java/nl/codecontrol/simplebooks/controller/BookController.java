@@ -1,10 +1,8 @@
 package nl.codecontrol.simplebooks.controller;
 
 import nl.codecontrol.simplebooks.entity.Book;
-import nl.codecontrol.simplebooks.exceptions.BookMismatchException;
-import nl.codecontrol.simplebooks.exceptions.BookNotFoundException;
 import nl.codecontrol.simplebooks.model.BookDto;
-import nl.codecontrol.simplebooks.repository.BookRepository;
+import nl.codecontrol.simplebooks.service.BookService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,14 +15,14 @@ import java.util.List;
 public class BookController {
 
     @Autowired
-    private BookRepository bookRepository;
+    private BookService bookService;
 
     @Autowired
     private ModelMapper modelMapper;
 
     @GetMapping
     public List<BookDto> findAll() {
-        List<Book> books = bookRepository.findAll();
+        List<Book> books = bookService.findAll();
 
         return books.stream()
             .map(this::convertToDto)
@@ -33,7 +31,7 @@ public class BookController {
 
     @GetMapping("/title/{bookTitle}")
     public List<BookDto> findByTitle(@PathVariable String bookTitle) {
-        List<Book> books = bookRepository.findByTitle(bookTitle);
+        List<Book> books = bookService.findByTitle(bookTitle);
 
         return books.stream()
             .map(this::convertToDto)
@@ -42,8 +40,7 @@ public class BookController {
 
     @GetMapping("/{id}")
     public BookDto findById(@PathVariable Long id) {
-        Book book =  bookRepository.findById(id)
-            .orElseThrow(BookNotFoundException::new);
+        Book book =  bookService.findById(id);
 
         return convertToDto(book);
     }
@@ -51,30 +48,19 @@ public class BookController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public BookDto create(@RequestBody BookDto bookDto) {
-        Book book = bookRepository.save(convertToEntity(bookDto));
+        Book book = bookService.create(convertToEntity(bookDto));
 
         return convertToDto(book);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
-        bookRepository.findById(id)
-            .orElseThrow(BookNotFoundException::new);
-
-        bookRepository.deleteById(id);
+        bookService.delete(id);
     }
 
     @PutMapping("/{id}")
     public BookDto updateBook(@RequestBody BookDto bookDto, @PathVariable Long id) {
-        if (bookDto.getId() != id) {
-            throw new BookMismatchException();
-        }
-        bookRepository.findById(id)
-            .orElseThrow(BookNotFoundException::new);
-
-        Book book = bookRepository.save(convertToEntity(bookDto));
-
-        return convertToDto(book);
+        return convertToDto(bookService.update(convertToEntity(bookDto), id));
     }
 
     private BookDto convertToDto(Book book) {
