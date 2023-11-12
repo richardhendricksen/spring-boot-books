@@ -2,7 +2,7 @@ package nl.codecontrol.simplebooks.controller;
 
 import nl.codecontrol.simplebooks.entity.Book;
 import nl.codecontrol.simplebooks.model.BookDto;
-import nl.codecontrol.simplebooks.repository.BookRepository;
+import nl.codecontrol.simplebooks.service.BookService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,7 +23,7 @@ class BookControllerTest {
     BookController bookController;
 
     @Mock
-    BookRepository bookRepository;
+    BookService bookService;
 
     @Spy
     ModelMapper modelMapper;
@@ -34,7 +34,7 @@ class BookControllerTest {
         // given
         Book book1 = new Book(1, "title1", "author1");
         Book book2 = new Book(2, "title2", "author2");
-        when(bookRepository.findAll()).thenReturn(List.of(book1, book2));
+        when(bookService.findAll()).thenReturn(List.of(book1, book2));
 
         // when
         List<BookDto> books = bookController.findAll();
