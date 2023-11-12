@@ -3,12 +3,15 @@ package nl.codecontrol.simplebooks.controller;
 import nl.codecontrol.simplebooks.exceptions.BookMismatchException;
 import nl.codecontrol.simplebooks.exceptions.BookNotFoundException;
 import nl.codecontrol.simplebooks.entity.Book;
+import nl.codecontrol.simplebooks.model.BookDto;
 import nl.codecontrol.simplebooks.repository.BookRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/books")
@@ -17,29 +20,41 @@ public class BookController {
     @Autowired
     private BookRepository bookRepository;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     @GetMapping
-    public Iterable<Book> findAll() {
-        return bookRepository.findAll();
+    public List<BookDto> findAll() {
+        List<Book> books = bookRepository.findAll();
+
+        return books.stream()
+            .map(this::convertToDto)
+            .toList();
     }
 
     @GetMapping("/title/{bookTitle}")
-    public List<Book> findByTitle(@PathVariable String bookTitle) {
-        return bookRepository.findByTitle(bookTitle);
+    public List<BookDto> findByTitle(@PathVariable String bookTitle) {
+        List<Book> books = bookRepository.findByTitle(bookTitle);
+
+        return books.stream()
+            .map(this::convertToDto)
+            .toList();
     }
 
     @GetMapping("/{id}")
-    public Book findById(@PathVariable Long id) {
-        return bookRepository.findById(id)
+    public BookDto findById(@PathVariable Long id) {
+        Book book =  bookRepository.findById(id)
             .orElseThrow(BookNotFoundException::new);
+
+        return convertToDto(book);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Book create(@RequestBody Book book) {
-        System.out.println(book.getId());
-        System.out.println(book.getAuthor());
-        System.out.println(book.getTitle());
-        return bookRepository.save(book);
+    public BookDto create(@RequestBody BookDto bookDto) {
+        Book book = bookRepository.save(convertToEntity(bookDto));
+
+        return convertToDto(book);
     }
 
     @DeleteMapping("/{id}")
@@ -51,12 +66,22 @@ public class BookController {
     }
 
     @PutMapping("/{id}")
-    public Book updateBook(@RequestBody Book book, @PathVariable Long id) {
-        if (book.getId() != id) {
+    public BookDto updateBook(@RequestBody BookDto bookDto, @PathVariable Long id) {
+        if (bookDto.getId() != id) {
             throw new BookMismatchException();
         }
         bookRepository.findById(id)
             .orElseThrow(BookNotFoundException::new);
-        return bookRepository.save(book);
+
+        Book book = bookRepository.save(convertToEntity(bookDto));
+
+        return convertToDto(book);
+    }
+
+    private BookDto convertToDto(Book book) {
+        return modelMapper.map(book, BookDto.class);
+    }
+    private Book convertToEntity(BookDto bookDto) {
+        return modelMapper.map(bookDto, Book.class);
     }
 }
