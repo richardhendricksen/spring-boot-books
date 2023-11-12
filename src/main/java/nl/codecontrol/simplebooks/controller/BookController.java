@@ -1,8 +1,8 @@
 package nl.codecontrol.simplebooks.controller;
 
+import nl.codecontrol.simplebooks.entity.Book;
 import nl.codecontrol.simplebooks.exceptions.BookMismatchException;
 import nl.codecontrol.simplebooks.exceptions.BookNotFoundException;
-import nl.codecontrol.simplebooks.entity.Book;
 import nl.codecontrol.simplebooks.model.BookDto;
 import nl.codecontrol.simplebooks.repository.BookRepository;
 import org.modelmapper.ModelMapper;
@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/books")
