@@ -1,8 +1,8 @@
 package nl.codecontrol.simplebooks.service;
 
 import nl.codecontrol.simplebooks.entity.Book;
-import nl.codecontrol.simplebooks.exceptions.BookMismatchException;
-import nl.codecontrol.simplebooks.exceptions.BookNotFoundException;
+import nl.codecontrol.simplebooks.exception.BookMismatchException;
+import nl.codecontrol.simplebooks.exception.BookNotFoundException;
 import nl.codecontrol.simplebooks.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class BookService {
 
     public Book findById(long id) {
         return bookRepository.findById(id)
-            .orElseThrow(BookNotFoundException::new);
+            .orElseThrow(() -> new BookNotFoundException(id));
 
     }
 
@@ -35,17 +35,17 @@ public class BookService {
 
     public void delete(Long id) {
         bookRepository.findById(id)
-            .orElseThrow(BookNotFoundException::new);
+            .orElseThrow(() -> new BookNotFoundException(id));
 
         bookRepository.deleteById(id);
     }
 
     public Book update(Book book, long id) {
         if (book.getId() != id) {
-            throw new BookMismatchException();
+            throw new BookMismatchException(id);
         }
         bookRepository.findById(id)
-            .orElseThrow(BookNotFoundException::new);
+            .orElseThrow(() -> new BookNotFoundException(id));
 
         return bookRepository.save(book);
     }
